@@ -263,7 +263,7 @@ void condNotifyAll(Condition c) @trusted nothrow
 /// `@system` constructor signature. The body itself remains `@safe`.
 /// The caller is responsible for joining the thread before the state
 /// captured by `dg` is freed.
-Thread spawnThread(void delegate() @safe nothrow dg) @trusted
+Thread spawnThread(scope void delegate() @safe nothrow dg) @trusted
 {
     void delegate() raw = cast(void delegate()) dg;
     auto t = new Thread(raw);

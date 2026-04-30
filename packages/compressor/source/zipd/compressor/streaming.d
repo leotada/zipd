@@ -145,9 +145,11 @@ Result!CompressionStats compressFile(string inputPath,
     }
     else
     {
-        scope inputBuf = new ubyte[ioBlockBytes];
+        ubyte[ioBlockBytes] inputBufStore = void;
+        scope inputBuf = inputBufStore[];
         // Worst case for store-encoded I/O block.
-        scope encBuf = new ubyte[storeEncodeBound(ioBlockBytes) + 16];
+        ubyte[storeEncodeBound(ioBlockBytes) + 16] encBufStore = void;
+        scope encBuf = encBufStore[];
 
         while (true)
         {

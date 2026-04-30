@@ -71,7 +71,8 @@ Result!size_t deflateEncode(const(ubyte)[] input,
     scope Lz77Matcher matcher;
     matcher.init(input, level);
 
-    scope Token[] tokens = new Token[tokensPerBlock];
+    Token[tokensPerBlock] tokensBuf = void;
+    scope Token[] tokens = tokensBuf[];
     size_t tokCount = 0;
     size_t pos = 0;
 
