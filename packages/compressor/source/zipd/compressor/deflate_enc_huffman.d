@@ -43,7 +43,7 @@ size_t deflateEncodeBound(size_t inputLen) pure nothrow @nogc @safe
 /// Encode `input` as a DEFLATE bitstream (one or more fixed-Huffman
 /// blocks) into `output`. Returns the number of bytes written.
 Result!size_t deflateEncode(const(ubyte)[] input,
-                            ubyte[] output, uint level) @safe
+                            scope ubyte[] output, uint level) @safe
 {
     if (level == 0)
         return failure!size_t(ErrorKind.invalidArgs,
@@ -52,7 +52,7 @@ Result!size_t deflateEncode(const(ubyte)[] input,
         return failure!size_t(ErrorKind.internal,
             "deflate encoder output buffer too small");
 
-    auto bw = BitWriter(output);
+    scope BitWriter bw = BitWriter(output);
 
     // Empty input: emit a single empty fixed-Huffman block (BFINAL=1,
     // BTYPE=01, EOB). 3 + 7 = 10 bits, padded to 16.
@@ -68,10 +68,10 @@ Result!size_t deflateEncode(const(ubyte)[] input,
         return success(bw.bytesFlushed);
     }
 
-    Lz77Matcher matcher;
+    scope Lz77Matcher matcher;
     matcher.init(input, level);
 
-    auto tokens = new Token[tokensPerBlock];
+    scope Token[] tokens = new Token[tokensPerBlock];
     size_t tokCount = 0;
     size_t pos = 0;
 

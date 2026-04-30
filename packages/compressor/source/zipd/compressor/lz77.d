@@ -53,7 +53,7 @@ struct Lz77Matcher
 
     /// Allocate the tables and bind to `data`. `level` 1..9 maps to a
     /// chain-walk cap; level 0 means store-only and is not used here.
-    void init(const(ubyte)[] data, uint level) @safe
+    void init(const(ubyte)[] data, uint level) @safe scope
     {
         this.data = data;
         head  = new uint[hashSize];

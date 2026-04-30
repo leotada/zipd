@@ -371,14 +371,16 @@ private Result!EncodedMember encodeMember(const(ubyte)[] input,
 
     if (mode == CompressMode.store)
     {
-        auto r = storeEncode(input, outBuf[produced .. $]);
+        scope ubyte[] bodyOut = outBuf[produced .. $];
+        auto r = storeEncode(input, bodyOut);
         if (!r.ok)
             return failure!EncodedMember(r.error.kind, r.error.message);
         produced += r.value;
     }
     else
     {
-        auto r = deflateEncode(input, outBuf[produced .. $], level);
+        scope ubyte[] bodyOut = outBuf[produced .. $];
+        auto r = deflateEncode(input, bodyOut, level);
         if (!r.ok)
             return failure!EncodedMember(r.error.kind, r.error.message);
         produced += r.value;
@@ -386,7 +388,8 @@ private Result!EncodedMember encodeMember(const(ubyte)[] input,
 
     Crc32 c;
     c.put(input);
-    auto tr = writeGzipTrailer(outBuf[produced .. produced + 8],
+    scope ubyte[] trailerOut = outBuf[produced .. produced + 8];
+    auto tr = writeGzipTrailer(trailerOut,
         c.finish(), cast(uint)(input.length & 0xFFFFFFFFu));
     if (!tr.ok)
         return failure!EncodedMember(tr.error.kind, tr.error.message);
