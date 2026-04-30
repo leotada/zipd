@@ -44,7 +44,7 @@ bench_case() {
         local start_ns end_ns
         start_ns=$(date +%s%N)
         "$ZIPD" compress "$input" -o "$output" \
-            --threads "$threads" --chunk-size "$CHUNK_SIZE" --quiet >/dev/null
+            --threads "$threads" --chunk-size "$CHUNK_SIZE" --quiet --debug >/dev/null
         end_ns=$(date +%s%N)
         awk -v start="$start_ns" -v end="$end_ns" \
             'BEGIN {printf "%.6f\n", (end - start) / 1000000000}' >> "$times"
