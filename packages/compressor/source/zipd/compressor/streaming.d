@@ -133,7 +133,7 @@ Result!CompressionStats compressFile(string inputPath,
         crc.put(data);
         inputBytes = data.length;
 
-        auto encBuf = new ubyte[deflateEncodeBound(data.length)];
+        scope encBuf = new ubyte[deflateEncodeBound(data.length)];
         auto enc = deflateEncode(data, encBuf, settings.level);
         if (!enc.ok)
             return failure!CompressionStats(enc.error.kind, enc.error.message);
@@ -145,9 +145,9 @@ Result!CompressionStats compressFile(string inputPath,
     }
     else
     {
-        auto inputBuf = new ubyte[ioBlockBytes];
+        scope inputBuf = new ubyte[ioBlockBytes];
         // Worst case for store-encoded I/O block.
-        auto encBuf = new ubyte[storeEncodeBound(ioBlockBytes) + 16];
+        scope encBuf = new ubyte[storeEncodeBound(ioBlockBytes) + 16];
 
         while (true)
         {

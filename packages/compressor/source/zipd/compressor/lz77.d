@@ -47,8 +47,8 @@ struct Match
 struct Lz77Matcher
 {
     private const(ubyte)[] data;
-    private uint[] head;     // hash → most recent position with that hash
-    private uint[] chain;    // position-mod-windowSize → previous position
+    private uint[hashSize] head;     // hash → most recent position with that hash
+    private uint[windowSize] chain;    // position-mod-windowSize → previous position
     private uint maxChain;   // chain walk cap (compression effort)
 
     /// Allocate the tables and bind to `data`. `level` 1..9 maps to a
@@ -56,8 +56,6 @@ struct Lz77Matcher
     void init(const(ubyte)[] data, uint level) @safe scope
     {
         this.data = data;
-        head  = new uint[hashSize];
-        chain = new uint[windowSize];
         head[]  = noPrev;
         chain[] = noPrev;
         maxChain = chainForLevel(level);

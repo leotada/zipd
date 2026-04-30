@@ -122,7 +122,7 @@ Result!CompressionStats compressMultiMember(ref File inFile,
     auto pool = new Pool(inFlight, settings.mode, settings.level);
 
     // Spawn workers.
-    auto threads = new Thread[workerCount];
+    scope threads = new Thread[workerCount];
     foreach (i; 0 .. workerCount)
         threads[i] = spawnThread(() @safe nothrow { workerLoop(pool); });
 
