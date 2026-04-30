@@ -53,7 +53,7 @@ bench_case() {
     done
     
     # Run once to collect GC stats (not timed)
-    "$ZIPD" compress "$input" -o "$output" --threads "$threads" --chunk-size "$CHUNK_SIZE" --quiet --debug 2>> "$GC_STATS_FILE" >/dev/null
+    "$ZIPD" compress "$input" -o "$output" --threads "$threads" --chunk-size "$CHUNK_SIZE" --force --quiet --debug 2>> "$GC_STATS_FILE" >/dev/null
 
     local input_bytes output_bytes avg best ratio avg_mibs
     input_bytes=$(wc -c < "$input")
