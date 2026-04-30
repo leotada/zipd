@@ -23,6 +23,8 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 RESULTS_FILE="$TMP_DIR/results.tsv"
 
 : > "$RESULTS_FILE"
+GC_STATS_FILE="$TMP_DIR/gc_stats.tsv"
+: > "$GC_STATS_FILE"
 mkdir -p "$(dirname "$REPORT_MD")"
 
 echo "benchmark_host_threads=$HOST_THREADS"
@@ -44,7 +46,7 @@ bench_case() {
         local start_ns end_ns
         start_ns=$(date +%s%N)
         "$ZIPD" compress "$input" -o "$output" \
-            --threads "$threads" --chunk-size "$CHUNK_SIZE" --quiet --debug >/dev/null
+            --threads "$threads" --chunk-size "$CHUNK_SIZE" --quiet --debug 2>> "$GC_STATS_FILE" >/dev/null
         end_ns=$(date +%s%N)
         awk -v start="$start_ns" -v end="$end_ns" \
             'BEGIN {printf "%.6f\n", (end - start) / 1000000000}' >> "$times"
@@ -105,7 +107,25 @@ write_report() {
         echo "- Data dir: $DATA_DIR"
         echo
         print_table
+
+        echo
+        echo "### Accumulated GC Profile"
+        echo
+        awk '/\[DEBUG\] GC profile:/ {
+            cols += $4
+            sub(/hnsecs,/, "", $8)
+            if ($8 > maxp) maxp = $8
+            sub(/hnsecs/, "", $11)
+            totp += $11
+        }
+        END {
+            printf "- **Collections (runs):** %d\n", cols
+            printf "- **Max Pause:** %d hnsecs\n", maxp
+            printf "- **Total Pause:** %d hnsecs\n", totp
+        }' "$GC_STATS_FILE"
     } > "$REPORT_MD"
+    
+    cat "$REPORT_MD"
 }
 
 for thread_count in $THREADS; do
@@ -121,5 +141,5 @@ for thread_count in $THREADS; do
 done
 
 write_report
-echo
+
 print_table
