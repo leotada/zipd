@@ -46,11 +46,14 @@ bench_case() {
         local start_ns end_ns
         start_ns=$(date +%s%N)
         "$ZIPD" compress "$input" -o "$output" \
-            --threads "$threads" --chunk-size "$CHUNK_SIZE" --quiet --debug 2>> "$GC_STATS_FILE" >/dev/null
+            --threads "$threads" --chunk-size "$CHUNK_SIZE" --quiet >/dev/null
         end_ns=$(date +%s%N)
         awk -v start="$start_ns" -v end="$end_ns" \
             'BEGIN {printf "%.6f\n", (end - start) / 1000000000}' >> "$times"
     done
+    
+    # Run once to collect GC stats (not timed)
+    "$ZIPD" compress "$input" -o "$output" --threads "$threads" --chunk-size "$CHUNK_SIZE" --quiet --debug 2>> "$GC_STATS_FILE" >/dev/null
 
     local input_bytes output_bytes avg best ratio avg_mibs
     input_bytes=$(wc -c < "$input")
