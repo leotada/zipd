@@ -1,0 +1,21 @@
+services:
+  test-safe-d:
+    image: docker.io/dlang2/ldc-ubuntu:latest
+    working_dir: /workspace
+    volumes:
+      - ..:/workspace:Z
+    entrypoint: ["/bin/bash", "-eu", "-c"]
+    command:
+      - |
+        set -eu
+        apt-get update -qq && apt-get install -y -qq gzip >/dev/null
+        echo '== safety grep =='
+        ! grep -RnE '\b@system\b'  packages/compressor packages/compress-cli
+        ! grep -RnE '\b@trusted\b' packages/compressor packages/compress-cli \
+          | grep -v 'compressor/unsafe.d'
+        echo '== unit tests =='
+        dub test  :compressor   --root=/workspace --config=unittest
+        echo '== build CLI =='
+        dub build :compress-cli --root=/workspace --build=release
+        echo '== gzip interop =='
+        bash tools/interop-test.sh

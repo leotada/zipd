@@ -1,0 +1,8 @@
+name "sevenzip-safe-d"
+description "Safe high-level D lossless compressor workspace (DEFLATE-first)."
+authors "7-Zip safe-D contributors"
+license "BSL-1.0"
+targetType "none"
+
+subPackage "packages/compressor"
+subPackage "packages/compress-cli"

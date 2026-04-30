@@ -1,0 +1,41 @@
+# DUB build caches and artifacts
+.dub/
+**/.dub/
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dll
+*.dylib
+*.exe
+
+# Package build outputs
+/packages/compress-cli/dgz
+/packages/compressor/libsevenzip-safe-d_compressor.a
+/packages/compressor/sevenzip-safe-d-compressor-test-unittest
+
+# Testing and Benchmarking
+/tools/benchmark-data/
+/tools/.benchmark-data-gen
+*.lst
+*.cov
+
+# Local scratch outputs and temporary files
+/packages/compress-cli/*.gz
+/packages/compress-cli/*.pdf
+/packages/compress-cli/*.tmp
+**/*.tmp
+*.log
+*.bin
+
+# Editor and IDE noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+

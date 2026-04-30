@@ -1,0 +1,11 @@
+name "compress-cli"
+description "dgz: safe high-level D gzip-compatible CLI."
+authors "7-Zip safe-D contributors"
+license "BSL-1.0"
+targetType "executable"
+targetName "dgz"
+sourcePaths "source"
+importPaths "source"
+dflags "-preview=dip1000"
+
+dependency "sevenzip-safe-d:compressor" path="../compressor"
