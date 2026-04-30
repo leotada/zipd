@@ -80,7 +80,7 @@ private final class Pool
     CompressMode mode;
     uint       level;
 
-    this(size_t inFlight, CompressMode m, uint lvl) @safe
+    this(size_t inFlight, CompressMode m, uint lvl) @safe scope
     {
         mtx = newMutex();
         jobAvail = newCondition(mtx);
@@ -119,10 +119,13 @@ Result!CompressionStats compressMultiMember(ref File inFile,
     const workerCount = effectiveThreads(settings.threads);
     // Bound in-flight work so memory stays ~ 2 * workers chunks.
     const inFlight = workerCount < 1 ? 2 : workerCount * 2;
-    auto pool = new Pool(inFlight, settings.mode, settings.level);
+    scope pool = new Pool(inFlight, settings.mode, settings.level);
 
     // Spawn workers.
-    scope threads = new Thread[workerCount];
+    Thread[32] threadsBuf;
+    if (workerCount > threadsBuf.length)
+        throw new Exception("Too many threads!");
+    scope threads = threadsBuf[0 .. workerCount];
     foreach (i; 0 .. workerCount)
         threads[i] = spawnThread(() @safe nothrow { workerLoop(pool); });
 
@@ -281,7 +284,7 @@ teardown:
 // ------------------------------------------------------------------ //
 // Worker
 
-private void workerLoop(Pool pool) @safe nothrow
+private void workerLoop(scope Pool pool) @safe nothrow
 {
     while (true)
     {
@@ -404,7 +407,7 @@ private Result!EncodedMember encodeMember(const(ubyte)[] input,
 // ------------------------------------------------------------------ //
 // Helpers (caller must hold pool.mtx)
 
-private size_t findSubmittedSlot(Pool pool) @safe nothrow
+private size_t findSubmittedSlot(scope Pool pool) @safe nothrow
 {
     size_t bestSlot = size_t.max;
     size_t bestIdx  = size_t.max;
@@ -419,7 +422,7 @@ private size_t findSubmittedSlot(Pool pool) @safe nothrow
     return bestSlot;
 }
 
-private size_t findDoneSlot(Pool pool, size_t wantIndex) @safe nothrow
+private size_t findDoneSlot(scope Pool pool, size_t wantIndex) @safe nothrow
 {
     foreach (i, ref s; pool.slots)
         if (s.state == SlotState.done && s.index == wantIndex)
@@ -427,7 +430,7 @@ private size_t findDoneSlot(Pool pool, size_t wantIndex) @safe nothrow
     return size_t.max;
 }
 
-private size_t findEmptySlot(Pool pool) @safe nothrow
+private size_t findEmptySlot(scope Pool pool) @safe nothrow
 {
     foreach (i, ref s; pool.slots)
         if (s.state == SlotState.empty)
