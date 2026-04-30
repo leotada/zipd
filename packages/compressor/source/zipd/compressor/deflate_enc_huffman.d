@@ -14,13 +14,13 @@
  * 100% `@safe @nogc nothrow` (apart from heap allocations of the
  * matcher tables and token buffer, which are GC and not `@nogc`).
  */
-module sevenzip.compressor.deflate_enc_huffman;
+module zipd.compressor.deflate_enc_huffman;
 
-import sevenzip.compressor.errors : Result, ErrorKind, success, failure;
-import sevenzip.compressor.bitwriter : BitWriter;
-import sevenzip.compressor.lz77 :
+import zipd.compressor.errors : Result, ErrorKind, success, failure;
+import zipd.compressor.bitwriter : BitWriter;
+import zipd.compressor.lz77 :
     Lz77Matcher, Match, minMatch, maxMatch, windowSize;
-import sevenzip.compressor.deflate_tables :
+import zipd.compressor.deflate_tables :
     lengthBase, lengthExtraBits, distanceBase, distanceExtraBits,
     numLengthCodes, numDistanceCodes, endOfBlock,
     fixedLitLenLengths, fixedLitLenCount, fixedDistLengths, fixedDistCount;
@@ -318,7 +318,7 @@ private immutable ubyte[windowSize + 1] distanceCodeOf = () {
 
 @safe unittest
 {
-    import sevenzip.compressor.deflate_dec : deflateDecode;
+    import zipd.compressor.deflate_dec : deflateDecode;
 
     immutable ubyte[] msg = cast(immutable(ubyte)[])
         "the quick brown fox jumps over the lazy dog";
@@ -335,7 +335,7 @@ private immutable ubyte[windowSize + 1] distanceCodeOf = () {
 
 @safe unittest
 {
-    import sevenzip.compressor.deflate_dec : deflateDecode;
+    import zipd.compressor.deflate_dec : deflateDecode;
 
     // Highly redundant input — expect significant compression.
     auto msg = new ubyte[64 * 1024];
@@ -354,7 +354,7 @@ private immutable ubyte[windowSize + 1] distanceCodeOf = () {
 
 @safe unittest
 {
-    import sevenzip.compressor.deflate_dec : deflateDecode;
+    import zipd.compressor.deflate_dec : deflateDecode;
 
     // Multi-block input.
     auto msg = new ubyte[200 * 1024];

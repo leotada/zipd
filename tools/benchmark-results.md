@@ -3,7 +3,7 @@
 - Host threads: 16
 - Chunk size: 1m
 - Runs per case: 1
-- Data dir: /home/leonardo/Projetos/7zip/sevenzip-safe-d/tools/benchmark-data
+- Data dir: /home/leonardo/Projetos/7zip/zipd/tools/benchmark-data
 
 | Dataset | Threads | Avg time | Throughput | Output ratio |
 | --- | ---: | ---: | ---: | ---: |

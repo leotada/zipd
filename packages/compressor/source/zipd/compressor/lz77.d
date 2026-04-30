@@ -9,7 +9,7 @@
  * Pure `@safe` and `@nogc` apart from the tables (which are heap
  * arrays allocated once at construction). No `@trusted`.
  */
-module sevenzip.compressor.lz77;
+module zipd.compressor.lz77;
 
 @safe:
 

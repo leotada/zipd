@@ -1,11 +1,11 @@
-# dgz — safe high-level D gzip-compatible compressor
+# zipd — safe high-level D gzip-compatible compressor
 
-`dgz` is a 100% `@safe` D implementation of a gzip-compatible lossless
+`zipd` is a 100% `@safe` D implementation of a gzip-compatible lossless
 compressor, built with `-preview=dip1000` and BSL-1.0 licensed. It lives
 in this repository's dub workspace.
 
 The only `@trusted` code in the project is confined to a single shim
-module (`sevenzip.compressor.unsafe`) that wraps Phobos I/O. CI enforces
+module (`zipd.compressor.unsafe`) that wraps Phobos I/O. CI enforces
 this with a `grep` check.
 
 ## Status
@@ -31,7 +31,7 @@ against LDC 1.26 inside a container (see "Container validation" below).
 dub build :compress-cli --build=release
 ```
 
-The resulting binary is `packages/compress-cli/dgz`.
+The resulting binary is `packages/compress-cli/zipd`.
 
 ## Run unit tests
 
@@ -103,10 +103,10 @@ You can override `BENCHMARK_THREADS`, `BENCHMARK_RUNS`,
 ## Usage
 
 ```
-dgz compress   <input> -o <output> [options]
-dgz decompress <input> -o <output> [options]
-dgz test       <input>
-dgz info       <input>
+zipd compress   <input> -o <output> [options]
+zipd decompress <input> -o <output> [options]
+zipd test       <input>
+zipd info       <input>
 ```
 
 ### Options
@@ -128,7 +128,7 @@ dgz info       <input>
 Compress a file with default settings (level 6, real DEFLATE):
 
 ```sh
-dgz compress notes.txt -o notes.txt.gz
+zipd compress notes.txt -o notes.txt.gz
 ```
 
 Decompress with `gunzip` to verify interop:
@@ -140,38 +140,38 @@ gunzip -k notes.txt.gz
 Decompress a gzip file produced by `gzip(1)`:
 
 ```sh
-dgz decompress archive.tar.gz -o archive.tar
+zipd decompress archive.tar.gz -o archive.tar
 ```
 
 Quick CRC + structural check without writing output:
 
 ```sh
-dgz test archive.tar.gz
+zipd test archive.tar.gz
 ```
 
 Inspect a gzip stream (member count, sizes, original name if any):
 
 ```sh
-dgz info archive.tar.gz
+zipd info archive.tar.gz
 ```
 
 Maximum-effort compression:
 
 ```sh
-dgz compress big.log -o big.log.gz --level 9
+zipd compress big.log -o big.log.gz --level 9
 ```
 
 Force store-only mode (useful for benchmarking I/O or for inputs that
 do not compress):
 
 ```sh
-dgz compress already.zip -o already.zip.gz --store
+zipd compress already.zip -o already.zip.gz --store
 ```
 
 Stream to stdout:
 
 ```sh
-dgz compress notes.txt --stdout > notes.txt.gz
+zipd compress notes.txt --stdout > notes.txt.gz
 ```
 
 ## Output guarantees
@@ -198,9 +198,9 @@ dgz compress notes.txt --stdout > notes.txt.gz
   dub.sdl                   # workspace
   packages/
     compressor/             # library: errors, settings, gzip, codec
-    compress-cli/           # `dgz` executable
+    compress-cli/           # `zipd` executable
   tests/
     compose.yml             # Podman service for full validation
   tools/
-    interop-test.sh         # gzip <-> dgz round-trip matrix
+    interop-test.sh         # gzip <-> zipd round-trip matrix
 ```

@@ -11,9 +11,9 @@
 *.exe
 
 # Package build outputs
-/packages/compress-cli/dgz
-/packages/compressor/libsevenzip-safe-d_compressor.a
-/packages/compressor/sevenzip-safe-d-compressor-test-unittest
+/packages/compress-cli/zipd
+/packages/compressor/libzipd_compressor.a
+/packages/compressor/zipd-compressor-test-unittest
 
 # Testing and Benchmarking
 /tools/benchmark-data/

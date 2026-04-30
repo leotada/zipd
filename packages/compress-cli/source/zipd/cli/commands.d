@@ -1,17 +1,17 @@
 /**
- * `dgz` command dispatch.
+ * `zipd` command dispatch.
  */
-module sevenzip.cli.commands;
+module zipd.cli.commands;
 
 import std.file : exists;
 import std.format : format;
 
-import sevenzip.compressor;
-import sevenzip.compressor.unsafe : writeStdoutLine, writeStderrErrorLine,
+import zipd.compressor;
+import zipd.compressor.unsafe : writeStdoutLine, writeStderrErrorLine,
     readWholeFile, removeFileNoThrow;
-import sevenzip.compressor.scheduler : effectiveThreads;
-import sevenzip.cli.args : Options, Command, helpText;
-import sevenzip.cli.exitcode;
+import zipd.compressor.scheduler : effectiveThreads;
+import zipd.cli.args : Options, Command, helpText;
+import zipd.cli.exitcode;
 
 @safe:
 
@@ -46,7 +46,7 @@ int runCompress(Options o) @safe
         return exitIo;
     }
     if (o.verbose)
-        safeFmt("dgz: compressing %s -> %s (mode=%s, level=%s, threads=%s, chunk=%s)",
+        safeFmt("zipd: compressing %s -> %s (mode=%s, level=%s, threads=%s, chunk=%s)",
             o.input, o.output,
             cast(int) o.settings.mode, o.settings.level,
             effectiveThreads(o.settings.threads), o.settings.chunkSize);
@@ -58,7 +58,7 @@ int runCompress(Options o) @safe
         return exitCodeFor(r.error.kind);
     }
     if (!o.quiet)
-        safeFmt("dgz: %s bytes -> %s bytes (%s blocks)",
+        safeFmt("zipd: %s bytes -> %s bytes (%s blocks)",
             r.value.inputBytes, r.value.outputBytes, r.value.blocks);
     return exitOk;
 }
@@ -82,7 +82,7 @@ int runDecompress(Options o) @safe
         return exitCodeFor(r.error.kind);
     }
     if (!o.quiet)
-        safeFmt("dgz: decompressed %s bytes (%s members)",
+        safeFmt("zipd: decompressed %s bytes (%s members)",
             r.value.outputBytes, r.value.blocks);
     return exitOk;
 }
@@ -92,7 +92,7 @@ int runTest(Options o) @safe
     // Decompress to a discarded temporary file. Phase 1 keeps it simple.
     import std.file : tempDir;
     import std.path : buildPath;
-    const tmp = buildPath(tempDir(), "dgz-test.tmp");
+    const tmp = buildPath(tempDir(), "zipd-test.tmp");
     auto r = decompressFile(o.input, tmp);
     safeRemove(tmp);
     if (!r.ok)
@@ -101,7 +101,7 @@ int runTest(Options o) @safe
         return exitCodeFor(r.error.kind);
     }
     if (!o.quiet)
-        safeFmt("dgz: %s OK (%s bytes)", o.input, r.value.outputBytes);
+        safeFmt("zipd: %s OK (%s bytes)", o.input, r.value.outputBytes);
     return exitOk;
 }
 
@@ -115,7 +115,7 @@ int runInfo(Options o) @safe
         safeError("cannot read input");
         return exitIo;
     }
-    import sevenzip.compressor.gzip : parseGzipHeader;
+    import zipd.compressor.gzip : parseGzipHeader;
     if (bytes.length < 2)
     {
         safeError("file too small");

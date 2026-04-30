@@ -2,7 +2,7 @@
 set -eu
 
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-DGZ="${DGZ:-$ROOT_DIR/packages/compress-cli/dgz}"
+ZIPD="${ZIPD:-$ROOT_DIR/packages/compress-cli/zipd}"
 DATA_DIR="${BENCHMARK_DATA_DIR:-$ROOT_DIR/tools/benchmark-data}"
 REPORT_MD="${BENCHMARK_REPORT_MD:-$ROOT_DIR/tools/benchmark-results.md}"
 THREADS="${BENCHMARK_THREADS:-1 2 4 0}"
@@ -12,7 +12,7 @@ HOST_THREADS=$(nproc)
 
 cd "$ROOT_DIR"
 
-if [[ ! -x "$DGZ" ]]; then
+if [[ ! -x "$ZIPD" ]]; then
     dub build :compress-cli --build=release >/dev/null
 fi
 
@@ -43,7 +43,7 @@ bench_case() {
         rm -f "$output"
         local start_ns end_ns
         start_ns=$(date +%s%N)
-        "$DGZ" compress "$input" -o "$output" \
+        "$ZIPD" compress "$input" -o "$output" \
             --threads "$threads" --chunk-size "$CHUNK_SIZE" --quiet >/dev/null
         end_ns=$(date +%s%N)
         awk -v start="$start_ns" -v end="$end_ns" \

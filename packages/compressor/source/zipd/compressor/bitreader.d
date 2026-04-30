@@ -10,7 +10,7 @@
  * its lifetime, and never reads past the end of its slice (it returns
  * `false` instead).
  */
-module sevenzip.compressor.bitreader;
+module zipd.compressor.bitreader;
 
 @safe:
 

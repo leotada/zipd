@@ -1,7 +1,7 @@
 /**
  * Public compressor settings and codec/container enums.
  */
-module sevenzip.compressor.settings;
+module zipd.compressor.settings;
 
 @safe:
 
@@ -65,7 +65,7 @@ struct CompressionStats
 
 /// Normalize and validate `s`. Returns the normalized settings or an
 /// error if a value is out of range.
-import sevenzip.compressor.errors : Result, ErrorKind, success, failure;
+import zipd.compressor.errors : Result, ErrorKind, success, failure;
 
 Result!CompressionSettings normalize(CompressionSettings s) pure nothrow @nogc @safe
 {

@@ -8,23 +8,23 @@
  * The implementation is `@safe` end-to-end except for the audited
  * `unsafe.d` shim used for `File` I/O and atomic rename.
  */
-module sevenzip.compressor.streaming;
+module zipd.compressor.streaming;
 
 import std.stdio : File;
 
-import sevenzip.compressor.errors : Result, ErrorKind, ErrorInfo,
+import zipd.compressor.errors : Result, ErrorKind, ErrorInfo,
     success, failure, noError;
-import sevenzip.compressor.settings : CompressionSettings, CompressionStats,
+import zipd.compressor.settings : CompressionSettings, CompressionStats,
     ContainerKind, CompressMode, normalize;
-import sevenzip.compressor.checksum : Crc32;
-import sevenzip.compressor.deflate_enc : storeEncode, storeEncodeBound;
-import sevenzip.compressor.deflate_enc_huffman :
+import zipd.compressor.checksum : Crc32;
+import zipd.compressor.deflate_enc : storeEncode, storeEncodeBound;
+import zipd.compressor.deflate_enc_huffman :
     deflateEncode, deflateEncodeBound;
-import sevenzip.compressor.deflate_dec : deflateDecode;
-import sevenzip.compressor.gzip : writeGzipHeader, writeGzipTrailer,
+import zipd.compressor.deflate_dec : deflateDecode;
+import zipd.compressor.gzip : writeGzipHeader, writeGzipTrailer,
     parseGzipHeader, parseGzipTrailer;
-import sevenzip.compressor.scheduler : compressMultiMember, effectiveThreads;
-import sevenzip.compressor.unsafe : readInto, writeAll, flush,
+import zipd.compressor.scheduler : compressMultiMember, effectiveThreads;
+import zipd.compressor.unsafe : readInto, writeAll, flush,
     renameFile, removeFileNoThrow;
 
 @safe:
@@ -280,7 +280,7 @@ Result!CompressionStats decompressFile(string inputPath,
             return failure!CompressionStats(tr.error.kind, tr.error.message);
         src = src[8 .. $];
 
-        import sevenzip.compressor.checksum : crc32;
+        import zipd.compressor.checksum : crc32;
         if (crc32(data) != tr.value.crc32Value)
             return failure!CompressionStats(ErrorKind.checksum,
                 "CRC32 mismatch");
@@ -323,7 +323,7 @@ Result!CompressionStats decompressFile(string inputPath,
 private Result!size_t storeEncodeNonFinal(scope const(ubyte)[] input,
                                           scope ubyte[] output) pure nothrow @nogc @safe
 {
-    import sevenzip.compressor.deflate_enc : maxStoredBlockBytes;
+    import zipd.compressor.deflate_enc : maxStoredBlockBytes;
 
     if (input.length == 0)
         return success(cast(size_t) 0);
@@ -409,7 +409,7 @@ private WriteErr safeWrite(ref File f, scope const(ubyte)[] data) @safe
 
 private Result!(ubyte[]) readAllBytes(ref File f) @safe
 {
-    import sevenzip.compressor.unsafe : fileSize;
+    import zipd.compressor.unsafe : fileSize;
     const sz = fileSize(f);
     auto buf = new ubyte[sz == 0 ? ioBlockBytes : cast(size_t) sz];
     size_t pos = 0;
@@ -435,9 +435,9 @@ private Result!(ubyte[]) readAllBytes(ref File f) @safe
     import std.path : buildPath;
 
     const dir = tempDir();
-    const inPath = buildPath(dir, "dgz-roundtrip.in");
-    const gzPath = buildPath(dir, "dgz-roundtrip.in.gz");
-    const outPath = buildPath(dir, "dgz-roundtrip.out");
+    const inPath = buildPath(dir, "zipd-roundtrip.in");
+    const gzPath = buildPath(dir, "zipd-roundtrip.in.gz");
+    const outPath = buildPath(dir, "zipd-roundtrip.out");
 
     immutable ubyte[] payload = cast(immutable(ubyte)[]) "hello, gzip world!";
     write(inPath, payload);
@@ -465,9 +465,9 @@ private Result!(ubyte[]) readAllBytes(ref File f) @safe
     import std.path : buildPath;
 
     const dir = tempDir();
-    const inPath = buildPath(dir, "dgz-empty.in");
-    const gzPath = buildPath(dir, "dgz-empty.in.gz");
-    const outPath = buildPath(dir, "dgz-empty.out");
+    const inPath = buildPath(dir, "zipd-empty.in");
+    const gzPath = buildPath(dir, "zipd-empty.in.gz");
+    const outPath = buildPath(dir, "zipd-empty.out");
 
     write(inPath, cast(immutable(ubyte)[]) "");
     auto c = compressFile(inPath, gzPath, CompressionSettings.init);

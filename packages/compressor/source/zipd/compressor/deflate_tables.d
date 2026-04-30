@@ -8,7 +8,7 @@
  * - The order in which the 19 code-length-code lengths are transmitted
  *   inside dynamic-Huffman (BTYPE=10) headers.
  */
-module sevenzip.compressor.deflate_tables;
+module zipd.compressor.deflate_tables;
 
 @safe:
 

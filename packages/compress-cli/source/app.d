@@ -1,12 +1,12 @@
 /**
- * `dgz` entry point.
+ * `zipd` entry point.
  */
 module app;
 
-import sevenzip.compressor.unsafe : writeStderrErrorLine;
-import sevenzip.cli.args : parseArgs;
-import sevenzip.cli.commands : run;
-import sevenzip.cli.exitcode : exitInvalidArgs, exitCodeFor;
+import zipd.compressor.unsafe : writeStderrErrorLine;
+import zipd.cli.args : parseArgs;
+import zipd.cli.commands : run;
+import zipd.cli.exitcode : exitInvalidArgs, exitCodeFor;
 
 int main(string[] argv) @safe
 {

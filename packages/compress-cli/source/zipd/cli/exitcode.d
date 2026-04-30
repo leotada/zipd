@@ -1,9 +1,9 @@
 /**
- * CLI exit codes for `dgz`. Mirrors `ErrorKind` numerically.
+ * CLI exit codes for `zipd`. Mirrors `ErrorKind` numerically.
  */
-module sevenzip.cli.exitcode;
+module zipd.cli.exitcode;
 
-import sevenzip.compressor.errors : ErrorKind;
+import zipd.compressor.errors : ErrorKind;
 
 @safe:
 

@@ -18,7 +18,7 @@
  *   - The thread/sync primitives are accessed through the audited
  *     `unsafe.d` shim. This module itself does not use `@trusted`.
  */
-module sevenzip.compressor.scheduler;
+module zipd.compressor.scheduler;
 
 import std.stdio : File;
 
@@ -26,16 +26,16 @@ import core.thread : Thread;
 import core.sync.mutex : Mutex;
 import core.sync.condition : Condition;
 
-import sevenzip.compressor.errors : Result, ErrorKind, ErrorInfo,
+import zipd.compressor.errors : Result, ErrorKind, ErrorInfo,
     success, failure, noError;
-import sevenzip.compressor.settings : CompressionSettings, CompressionStats,
+import zipd.compressor.settings : CompressionSettings, CompressionStats,
     CompressMode;
-import sevenzip.compressor.checksum : Crc32;
-import sevenzip.compressor.deflate_enc : storeEncode, storeEncodeBound;
-import sevenzip.compressor.deflate_enc_huffman :
+import zipd.compressor.checksum : Crc32;
+import zipd.compressor.deflate_enc : storeEncode, storeEncodeBound;
+import zipd.compressor.deflate_enc_huffman :
     deflateEncode, deflateEncodeBound;
-import sevenzip.compressor.gzip : writeGzipHeader, writeGzipTrailer;
-import sevenzip.compressor.unsafe :
+import zipd.compressor.gzip : writeGzipHeader, writeGzipTrailer;
+import zipd.compressor.unsafe :
     cpuCount, newMutex, newCondition,
     mutexLock, mutexUnlock, condWait, condNotifyOne, condNotifyAll,
     spawnThread, joinThread,
@@ -439,12 +439,12 @@ private size_t findEmptySlot(Pool pool) @safe nothrow
 {
     import std.file : tempDir, write, read, remove;
     import std.path : buildPath;
-    import sevenzip.compressor.streaming : decompressFile;
+    import zipd.compressor.streaming : decompressFile;
 
     const dir = tempDir();
-    const inPath = buildPath(dir, "dgz-mt.in");
-    const gzPath = buildPath(dir, "dgz-mt.gz");
-    const outPath = buildPath(dir, "dgz-mt.out");
+    const inPath = buildPath(dir, "zipd-mt.in");
+    const gzPath = buildPath(dir, "zipd-mt.gz");
+    const outPath = buildPath(dir, "zipd-mt.out");
 
     // ~3.5 chunks at 1 MiB.
     auto payload = new ubyte[3_700_000];
@@ -484,9 +484,9 @@ private size_t findEmptySlot(Pool pool) @safe nothrow
     import std.path : buildPath;
 
     const dir = tempDir();
-    const inPath = buildPath(dir, "dgz-det.in");
-    const gz1 = buildPath(dir, "dgz-det.1.gz");
-    const gz2 = buildPath(dir, "dgz-det.2.gz");
+    const inPath = buildPath(dir, "zipd-det.in");
+    const gz1 = buildPath(dir, "zipd-det.1.gz");
+    const gz2 = buildPath(dir, "zipd-det.2.gz");
 
     auto payload = new ubyte[600_000];
     foreach (i, ref b; payload)

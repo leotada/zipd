@@ -15,7 +15,7 @@
  *   4. If a future Phobos / druntime release makes the wrapped API
  *      genuinely `@safe`, delete the wrapper.
  */
-module sevenzip.compressor.unsafe;
+module zipd.compressor.unsafe;
 
 import std.stdio : File;
 
@@ -135,7 +135,7 @@ void writeStdoutLine(scope const(char)[] line) @trusted nothrow
 }
 
 /**
- * Write `"dgz: error: " ~ line ~ '\n'` to standard error.
+ * Write `"zipd: error: " ~ line ~ '\n'` to standard error.
  *
  * Safety: `stderr.writeln` only reads from `line`; we do not retain it.
  */
@@ -144,7 +144,7 @@ void writeStderrErrorLine(scope const(char)[] line) @trusted nothrow
     import std.stdio : stderr;
     try
     {
-        stderr.writeln("dgz: error: ", line);
+        stderr.writeln("zipd: error: ", line);
     }
     catch (Exception)
     {
@@ -152,7 +152,7 @@ void writeStderrErrorLine(scope const(char)[] line) @trusted nothrow
 }
 
 // ------------------------------------------------------------------ //
-// Threading shim. Used only by `sevenzip.compressor.scheduler`.
+// Threading shim. Used only by `zipd.compressor.scheduler`.
 // Each wrapper exists because `core.thread` / `core.sync` are
 // `@system`. The scheduler observes the discipline that:
 //   1. shared mutable state is only touched while the matching

@@ -7,9 +7,9 @@
  *
  * Phase 2 will replace this with the real DEFLATE engine (LZ77 + Huffman).
  */
-module sevenzip.compressor.deflate_enc;
+module zipd.compressor.deflate_enc;
 
-import sevenzip.compressor.errors : Result, ErrorKind, success, failure;
+import zipd.compressor.errors : Result, ErrorKind, success, failure;
 
 @safe:
 

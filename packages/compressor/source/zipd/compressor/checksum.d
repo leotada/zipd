@@ -4,7 +4,7 @@
  * Pure, `@safe`, `@nogc`, `nothrow`. Computes the same value as the
  * reference `gzip` trailer.
  */
-module sevenzip.compressor.checksum;
+module zipd.compressor.checksum;
 
 @safe:
 

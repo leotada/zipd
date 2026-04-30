@@ -4,9 +4,9 @@
  * Encodes a fixed, deterministic header (no MTIME, no FNAME unless
  * requested) and an 8-byte trailer (CRC32, ISIZE).
  */
-module sevenzip.compressor.gzip;
+module zipd.compressor.gzip;
 
-import sevenzip.compressor.errors : Result, ErrorKind, ErrorInfo,
+import zipd.compressor.errors : Result, ErrorKind, ErrorInfo,
     success, failure, noError;
 
 @safe:

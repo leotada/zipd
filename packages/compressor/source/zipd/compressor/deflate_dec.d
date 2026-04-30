@@ -16,13 +16,13 @@
  * `@trusted` point in this file (it writes module-private storage
  * before any decode runs).
  */
-module sevenzip.compressor.deflate_dec;
+module zipd.compressor.deflate_dec;
 
-import sevenzip.compressor.errors : Result, ErrorKind, success, failure;
-import sevenzip.compressor.bitreader : BitReader;
-import sevenzip.compressor.huffman :
+import zipd.compressor.errors : Result, ErrorKind, success, failure;
+import zipd.compressor.bitreader : BitReader;
+import zipd.compressor.huffman :
     HuffmanDecoder, buildHuffman, decodeError, maxCodeBits;
-import sevenzip.compressor.deflate_tables;
+import zipd.compressor.deflate_tables;
 
 @safe:
 
@@ -333,7 +333,7 @@ private FixedTables fixedTables() pure nothrow @nogc @safe
 
 @safe unittest
 {
-    import sevenzip.compressor.deflate_enc : storeEncode, storeEncodeBound;
+    import zipd.compressor.deflate_enc : storeEncode, storeEncodeBound;
     immutable ubyte[] data = [10, 20, 30, 40, 50];
     auto enc = new ubyte[storeEncodeBound(data.length)];
     auto e = storeEncode(data, enc);

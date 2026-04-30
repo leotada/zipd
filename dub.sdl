@@ -1,6 +1,6 @@
-name "sevenzip-safe-d"
+name "zipd"
 description "Safe high-level D lossless compressor workspace (DEFLATE-first)."
-authors "7-Zip safe-D contributors"
+authors "zipd contributors"
 license "BSL-1.0"
 targetType "none"
 

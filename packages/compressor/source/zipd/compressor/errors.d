@@ -5,12 +5,12 @@
  * `Result!T` carrying either a value or an `ErrorInfo`. The CLI converts
  * `ErrorInfo` to an exit code and a human-readable message.
  */
-module sevenzip.compressor.errors;
+module zipd.compressor.errors;
 
 @safe:
 
 /// High-level error category. Maps directly to CLI exit codes (see
-/// `sevenzip.cli.exitcode`).
+/// `zipd.cli.exitcode`).
 enum ErrorKind : ubyte
 {
     none           = 0,

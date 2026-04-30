@@ -11,9 +11,9 @@
  * "byte-align, length, ~length, payload" scheme; the bit writer is
  * still useful for the 3-bit block header.
  */
-module sevenzip.compressor.bitwriter;
+module zipd.compressor.bitwriter;
 
-import sevenzip.compressor.errors : Result, ErrorKind, success, failure;
+import zipd.compressor.errors : Result, ErrorKind, success, failure;
 
 @safe:
 

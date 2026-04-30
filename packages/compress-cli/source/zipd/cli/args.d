@@ -1,10 +1,10 @@
 /**
- * Argument parser for `dgz`. Hand-written, `@safe`, no external deps.
+ * Argument parser for `zipd`. Hand-written, `@safe`, no external deps.
  */
-module sevenzip.cli.args;
+module zipd.cli.args;
 
-import sevenzip.compressor.errors : Result, ErrorKind, success, failure;
-import sevenzip.compressor.settings : CompressionSettings, CompressMode;
+import zipd.compressor.errors : Result, ErrorKind, success, failure;
+import zipd.compressor.settings : CompressionSettings, CompressMode;
 
 @safe:
 
@@ -36,7 +36,7 @@ Result!Options parseArgs(scope string[] argv) @safe
     Options o;
     if (argv.length < 2)
         return failure!Options(ErrorKind.invalidArgs,
-            "missing command (try `dgz compress <input> -o <output>`)");
+            "missing command (try `zipd compress <input> -o <output>`)");
 
     switch (argv[1])
     {
@@ -188,13 +188,13 @@ private Result!size_t parseSize(scope string s) pure nothrow @nogc @safe
 }
 
 enum string helpText =
-"dgz - safe high-level D gzip-compatible compressor
+"zipd - safe high-level D gzip-compatible compressor
 
 Usage:
-  dgz compress   <input> -o <output> [options]
-  dgz decompress <input> -o <output> [options]
-  dgz test       <input>
-  dgz info       <input>
+  zipd compress   <input> -o <output> [options]
+  zipd decompress <input> -o <output> [options]
+  zipd test       <input>
+  zipd info       <input>
 
 Options:
   --level N         Compression level 1..9 (default 6; ignored in --store mode)
@@ -210,7 +210,7 @@ Options:
 
 @safe unittest
 {
-    auto r = parseArgs(["dgz", "compress", "in.txt", "-o", "out.gz"]);
+    auto r = parseArgs(["zipd", "compress", "in.txt", "-o", "out.gz"]);
     assert(r.ok);
     assert(r.value.command == Command.compress);
     assert(r.value.input == "in.txt");
@@ -219,21 +219,21 @@ Options:
 
 @safe unittest
 {
-    auto r = parseArgs(["dgz", "compress", "--stdout", "-o", "x", "in"]);
+    auto r = parseArgs(["zipd", "compress", "--stdout", "-o", "x", "in"]);
     assert(!r.ok);
     assert(r.error.kind == ErrorKind.invalidArgs);
 }
 
 @safe unittest
 {
-    auto r = parseArgs(["dgz", "compress", "in", "-o", "out", "--chunk-size", "4m"]);
+    auto r = parseArgs(["zipd", "compress", "in", "-o", "out", "--chunk-size", "4m"]);
     assert(r.ok);
     assert(r.value.settings.chunkSize == 4 * 1024 * 1024);
 }
 
 @safe unittest
 {
-    auto r = parseArgs(["dgz", "decompress", "in.gz", "-o", "out"]);
+    auto r = parseArgs(["zipd", "decompress", "in.gz", "-o", "out"]);
     assert(r.ok);
     assert(r.value.command == Command.decompress);
 }

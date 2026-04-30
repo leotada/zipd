@@ -9,10 +9,10 @@
  *
  * No `@trusted` is used; the code is fully `@safe pure nothrow @nogc`.
  */
-module sevenzip.compressor.huffman;
+module zipd.compressor.huffman;
 
-import sevenzip.compressor.errors : Result, ErrorKind, success, failure;
-import sevenzip.compressor.bitreader : BitReader;
+import zipd.compressor.errors : Result, ErrorKind, success, failure;
+import zipd.compressor.bitreader : BitReader;
 
 @safe:
 
