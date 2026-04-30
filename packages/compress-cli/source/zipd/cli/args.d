@@ -26,6 +26,7 @@ struct Options
     bool                force;
     bool                quiet;
     bool                verbose;
+    bool                debugMode;
     bool                storeName;
     bool                explicitMode;
     CompressionSettings settings;
@@ -73,6 +74,9 @@ Result!Options parseArgs(scope string[] argv) @safe
                 break;
             case "--verbose":
                 o.verbose = true;
+                break;
+            case "--debug":
+                o.debugMode = true;
                 break;
             case "--name":
                 o.storeName = true;
@@ -206,6 +210,7 @@ Options:
   --name            Store original filename in gzip FNAME field
   --quiet           Only print errors
   --verbose         Print settings and timing
+  --debug           Print Garbage Collector usage statistics at the end
 ";
 
 @safe unittest

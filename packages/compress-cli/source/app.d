@@ -16,5 +16,24 @@ int main(string[] argv) @safe
         writeStderrErrorLine(parsed.error.message);
         return exitCodeFor(parsed.error.kind);
     }
-    return run(parsed.value);
+    
+    auto result = run(parsed.value);
+
+    if (parsed.value.debugMode)
+    {
+        () @trusted {
+            import core.memory : GC;
+            import std.stdio : stderr;
+            try
+            {
+                auto ps = GC.profileStats();
+                auto s = GC.stats();
+                stderr.writefln("[DEBUG] GC usage: %d bytes used in heap, %d bytes free", s.usedSize, s.freeSize);
+                stderr.writefln("[DEBUG] GC profile: %d collections, max pause: %s, total pause: %s", ps.numCollections, ps.maxPauseTime, ps.totalPauseTime);
+            }
+            catch (Exception) {}
+        }();
+    }
+
+    return result;
 }
