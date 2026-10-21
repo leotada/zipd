@@ -116,6 +116,21 @@ int runInfo(Options o) @safe
         return exitIo;
     }
     import zipd.compressor.gzip : parseGzipHeader;
+    import zipd.compressor.zstd_frame : isZstdFrameMagic, parseZstdFrameHeader;
+    if (isZstdFrameMagic(bytes))
+    {
+        auto zh = parseZstdFrameHeader(bytes, ulong.max);
+        if (!zh.ok)
+        {
+            safeError(zh.error.message);
+            return exitCodeFor(zh.error.kind);
+        }
+        safeFmt("zstd: header=%s bytes window=%s content=%s checksum=%s",
+            zh.value.headerSize, zh.value.windowSize,
+            zh.value.hasContentSize ? format("%s", zh.value.contentSize) : "unknown",
+            zh.value.hasChecksum);
+        return exitOk;
+    }
     if (bytes.length < 2)
     {
         safeError("file too small");

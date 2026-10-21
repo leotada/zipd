@@ -29,7 +29,8 @@ import core.sync.condition : Condition;
 import zipd.compressor.errors : Result, ErrorKind, ErrorInfo,
     success, failure, noError;
 import zipd.compressor.settings : CompressionSettings, CompressionStats,
-    CompressMode;
+    CompressMode, ContainerKind;
+import zipd.compressor.zstd_enc : ZstdEncContext, zstdEncodeFrameWithContext, zstdEncodeBound;
 import zipd.compressor.checksum : Crc32;
 import zipd.compressor.deflate_enc : storeEncode, storeEncodeBound;
 import zipd.compressor.deflate_enc_huffman :
@@ -77,15 +78,17 @@ private final class Pool
     Condition  resultAvail;  // main waits here for done/empty change
     ChunkSlot[] slots;
     bool       shutdown;     // set by main on tear-down
+    ContainerKind container;
     CompressMode mode;
     uint       level;
 
-    this(size_t inFlight, CompressMode m, uint lvl) @safe scope
+    this(size_t inFlight, ContainerKind c, CompressMode m, uint lvl) @safe scope
     {
         mtx = newMutex();
         jobAvail = newCondition(mtx);
         resultAvail = newCondition(mtx);
         slots = new ChunkSlot[inFlight];
+        container = c;
         mode = m;
         level = lvl;
     }
@@ -119,7 +122,7 @@ Result!CompressionStats compressMultiMember(ref File inFile,
     const workerCount = effectiveThreads(settings.threads);
     // Bound in-flight work so memory stays ~ 2 * workers chunks.
     const inFlight = workerCount < 1 ? 2 : workerCount * 2;
-    scope pool = new Pool(inFlight, settings.mode, settings.level);
+    scope pool = new Pool(inFlight, settings.container, settings.mode, settings.level);
 
     // Spawn workers.
     Thread[32] threadsBuf;
@@ -286,6 +289,7 @@ teardown:
 
 private void workerLoop(scope Pool pool) @safe nothrow
 {
+    ZstdEncContext zstdCtx;
     while (true)
     {
         // Find a job (lowest-index submitted slot) under the lock.
@@ -317,7 +321,7 @@ private void workerLoop(scope Pool pool) @safe nothrow
         {
             auto r = encodeMember(
                 pool.slots[slot].input[0 .. pool.slots[slot].inputLen],
-                pool.mode, pool.level, outBuf);
+                pool.container, pool.mode, pool.level, outBuf, zstdCtx);
             if (!r.ok)
                 err = ErrorInfo(r.error.kind, r.error.message);
             else
@@ -354,10 +358,26 @@ private struct EncodedMember
 /// GC allocations; the worker wraps the call with try/catch so the
 /// loop itself stays `nothrow`.
 private Result!EncodedMember encodeMember(const(ubyte)[] input,
+                                          ContainerKind container,
                                           CompressMode mode,
                                           uint level,
-                                          ubyte[] outBuf) @safe
+                                          ubyte[] outBuf,
+                                          ref ZstdEncContext zstdCtx) @safe
 {
+    if (container == ContainerKind.zstd)
+    {
+        const need = zstdEncodeBound(input.length);
+        if (outBuf.length < need)
+            outBuf = new ubyte[need];
+        auto r = zstdEncodeFrameWithContext(zstdCtx, input, outBuf, level, mode == CompressMode.store);
+        if (!r.ok)
+            return failure!EncodedMember(r.error.kind, r.error.message);
+        EncodedMember m;
+        m.buf = outBuf;
+        m.len = r.value;
+        return success(m);
+    }
+
     const need = 32
         + (mode == CompressMode.store
            ? storeEncodeBound(input.length)

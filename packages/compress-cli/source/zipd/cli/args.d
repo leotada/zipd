@@ -4,7 +4,8 @@
 module zipd.cli.args;
 
 import zipd.compressor.errors : Result, ErrorKind, success, failure;
-import zipd.compressor.settings : CompressionSettings, CompressMode;
+import zipd.compressor.settings : CompressionSettings, CompressMode,
+    CodecId, ContainerKind;
 
 @safe:
 
@@ -29,6 +30,7 @@ struct Options
     bool                debugMode;
     bool                storeName;
     bool                explicitMode;
+    bool                explicitCodec;
     CompressionSettings settings;
 }
 
@@ -84,6 +86,26 @@ Result!Options parseArgs(scope string[] argv) @safe
             case "--store":
                 o.settings.mode = CompressMode.store;
                 o.explicitMode = true;
+                break;
+            case "--codec":
+                if (++i >= argv.length)
+                    return failure!Options(ErrorKind.invalidArgs,
+                        "--codec requires an argument");
+                switch (argv[i])
+                {
+                    case "zstd":
+                        o.settings.codec = CodecId.zstd;
+                        o.settings.container = ContainerKind.zstd;
+                        break;
+                    case "deflate": case "gzip":
+                        o.settings.codec = CodecId.deflate;
+                        o.settings.container = ContainerKind.gzip;
+                        break;
+                    default:
+                        return failure!Options(ErrorKind.invalidArgs,
+                            "unknown codec (expected deflate, gzip or zstd)");
+                }
+                o.explicitCodec = true;
                 break;
             case "--level":
                 if (++i >= argv.length)
@@ -141,6 +163,14 @@ Result!Options parseArgs(scope string[] argv) @safe
         if (!o.useStdout && o.output.length == 0)
             return failure!Options(ErrorKind.invalidArgs,
                 "missing -o <output> (or pass --stdout)");
+    }
+
+    // A `.zst` output name selects ZSTD unless --codec was given.
+    if (o.command == Command.compress && !o.explicitCodec
+        && o.output.length > 4 && o.output[$ - 4 .. $] == ".zst")
+    {
+        o.settings.codec = CodecId.zstd;
+        o.settings.container = ContainerKind.zstd;
     }
 
     o.settings.storeName = o.storeName;
@@ -204,6 +234,7 @@ Options:
   --level N         Compression level 1..9 (default 6; ignored in --store mode)
   --threads N       Worker count, 0 = auto (Phase 3)
   --chunk-size SIZE Independent block size, e.g. 256k, 1m, 4m
+  --codec NAME      deflate (gzip, default) or zstd; .zst output implies zstd
   --store           Use uncompressed DEFLATE blocks (Phase 1 default)
   --stdout          Write to stdout (mutually exclusive with -o)
   --force           Overwrite output
@@ -234,6 +265,17 @@ Options:
     auto r = parseArgs(["zipd", "compress", "in", "-o", "out", "--chunk-size", "4m"]);
     assert(r.ok);
     assert(r.value.settings.chunkSize == 4 * 1024 * 1024);
+}
+
+@safe unittest
+{
+    auto r = parseArgs(["zipd", "compress", "in", "-o", "out.zst"]);
+    assert(r.ok && r.value.settings.codec == CodecId.zstd);
+    r = parseArgs(["zipd", "compress", "in", "-o", "out.zst", "--codec", "gzip"]);
+    assert(r.ok && r.value.settings.codec == CodecId.deflate);
+    r = parseArgs(["zipd", "compress", "in", "-o", "out", "--codec", "zstd"]);
+    assert(r.ok && r.value.settings.container == ContainerKind.zstd);
+    assert(!parseArgs(["zipd", "compress", "in", "-o", "o", "--codec", "x"]).ok);
 }
 
 @safe unittest

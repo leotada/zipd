@@ -12,6 +12,8 @@ enum CodecId : ubyte
     deflate = 1,
     /// Reserved for the optional Phase 5 codec.
     lzma2   = 2,
+    /// Zstandard (RFC 8878).
+    zstd    = 3,
 }
 
 /// Output framing for a compressed stream.
@@ -23,6 +25,8 @@ enum ContainerKind : ubyte
     rawDeflate = 2,
     /// zlib (RFC 1950). Reserved.
     zlib       = 3,
+    /// Zstandard frames (RFC 8878).
+    zstd       = 4,
 }
 
 /// Compression mode. Phase 1 ships only `store`; Phase 2 adds the real
@@ -69,6 +73,11 @@ import zipd.compressor.errors : Result, ErrorKind, success, failure;
 
 Result!CompressionSettings normalize(CompressionSettings s) pure nothrow @nogc @safe
 {
+    // The codec and container selectors are linked for ZSTD.
+    if (s.codec == CodecId.zstd)
+        s.container = ContainerKind.zstd;
+    else if (s.container == ContainerKind.zstd)
+        s.codec = CodecId.zstd;
     if (s.level < 1 || s.level > 9)
         return failure!CompressionSettings(ErrorKind.invalidArgs,
             "level must be in 1..9");

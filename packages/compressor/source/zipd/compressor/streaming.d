@@ -24,6 +24,9 @@ import zipd.compressor.deflate_dec : deflateDecode;
 import zipd.compressor.gzip : writeGzipHeader, writeGzipTrailer,
     parseGzipHeader, parseGzipTrailer;
 import zipd.compressor.scheduler : compressMultiMember, effectiveThreads;
+import zipd.compressor.zstd_enc : zstdEncodeFrame, zstdEncodeBound;
+import zipd.compressor.zstd_dec : zstdDecode;
+import zipd.compressor.zstd_frame : isZstdMagic;
 import zipd.compressor.unsafe : readInto, writeAll, flush,
     renameFile, removeFileNoThrow;
 
@@ -52,9 +55,10 @@ Result!CompressionStats compressFile(string inputPath,
         return failure!CompressionStats(norm.error.kind, norm.error.message);
     settings = norm.value;
 
-    if (settings.container != ContainerKind.gzip)
+    if (settings.container != ContainerKind.gzip
+        && settings.container != ContainerKind.zstd)
         return failure!CompressionStats(ErrorKind.unsupported,
-            "only gzip container is supported in v1");
+            "only gzip and zstd containers are supported");
     if (settings.mode != CompressMode.store
         && settings.mode != CompressMode.deflate)
         return failure!CompressionStats(ErrorKind.unsupported,
@@ -84,13 +88,11 @@ Result!CompressionStats compressFile(string inputPath,
 
     scope (failure) removeFileNoThrow(tmpPath);
 
-    // Phase 3: multi-threaded path. When the user asks for >1 worker
-    // (or auto-detects to >1 on this host), emit a stream of
-    // independent gzip members. Skip when --name is set, because the
-    // multi-member writer cannot stamp FNAME on the very first member
-    // without a re-encode pass.
+    // Multi-threaded path: when threads > 1, emit a stream of
+    // independent frames/members (concatenated gzip members or concatenated ZSTD frames).
+    // For gzip, skip when --name is set because FNAME is only for single-member.
     const wantThreads = effectiveThreads(settings.threads);
-    if (wantThreads > 1 && !settings.storeName)
+    if (wantThreads > 1 && (!settings.storeName || settings.container == ContainerKind.zstd))
     {
         auto rmt = compressMultiMember(inFile, outFile, settings, "");
         if (!rmt.ok)
@@ -105,6 +107,37 @@ Result!CompressionStats compressFile(string inputPath,
         catch (Exception)
             return failure!CompressionStats(ErrorKind.io, "rename failed");
         return success(rmt.value);
+    }
+
+    if (settings.container == ContainerKind.zstd)
+    {
+        // Single zstd frame (single-threaded).
+        auto allInput = readAllBytes(inFile);
+        if (!allInput.ok)
+            return failure!CompressionStats(allInput.error.kind, allInput.error.message);
+        const(ubyte)[] data = allInput.value;
+        scope encBuf = new ubyte[zstdEncodeBound(data.length)];
+        auto enc = zstdEncodeFrame(data, encBuf, settings.level,
+            settings.mode == CompressMode.store);
+        if (!enc.ok)
+            return failure!CompressionStats(enc.error.kind, enc.error.message);
+        auto wr = safeWrite(outFile, encBuf[0 .. enc.value]);
+        if (!wr.ok)
+            return failure!CompressionStats(wr.kind, wr.message);
+        try
+            flush(outFile);
+        catch (Exception)
+            return failure!CompressionStats(ErrorKind.io, "flush failed");
+        outFile = File.init;
+        try
+            renameFile(tmpPath, outputPath);
+        catch (Exception)
+            return failure!CompressionStats(ErrorKind.io, "rename failed");
+        CompressionStats st;
+        st.inputBytes = data.length;
+        st.outputBytes = enc.value;
+        st.blocks = (data.length + 131_071) / 131_072;
+        return success(st);
     }
 
     // gzip header (no FNAME for determinism unless storeName is true).
@@ -255,6 +288,35 @@ Result!CompressionStats decompressFile(string inputPath,
     ulong inputBytes = 0;
     ulong outputBytes = 0;
     ulong blocks = 0;
+
+    if (isZstdMagic(src))
+    {
+        // Output size is unknown; grow geometrically on "too small".
+        enum size_t softCap = 1u << 30;
+        size_t cap = src.length * 4 + 64 * 1024;
+        while (true)
+        {
+            if (cap > softCap)
+                return failure!CompressionStats(ErrorKind.corruptInput,
+                    "decoded zstd stream would exceed 1 GiB soft cap");
+            auto outBuf = new ubyte[cap];
+            auto zr = zstdDecode(src, outBuf);
+            if (zr.ok)
+            {
+                auto wrz = safeWrite(outFile, outBuf[0 .. zr.value.produced]);
+                if (!wrz.ok)
+                    return failure!CompressionStats(wrz.kind, wrz.message);
+                inputBytes = src.length;
+                outputBytes = zr.value.produced;
+                blocks = zr.value.frames;
+                src = src[0 .. 0];
+                break;
+            }
+            if (zr.error.kind != ErrorKind.internal)
+                return failure!CompressionStats(zr.error.kind, zr.error.message);
+            cap = cap < softCap / 2 ? cap * 2 : softCap;
+        }
+    }
 
     while (src.length > 0)
     {
