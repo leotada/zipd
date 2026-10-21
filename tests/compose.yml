@@ -8,7 +8,7 @@ services:
     command:
       - |
         set -eu
-        apt-get update -qq && apt-get install -y -qq gzip >/dev/null
+        apt-get update -qq && apt-get install -y -qq gzip zstd >/dev/null
         echo '== safety grep =='
         ! grep -RnE '\b@system\b'  packages/compressor packages/compress-cli
         ! grep -RnE '\b@trusted\b' packages/compressor packages/compress-cli \

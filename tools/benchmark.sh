@@ -8,6 +8,7 @@ REPORT_MD="${BENCHMARK_REPORT_MD:-$ROOT_DIR/tools/benchmark-results.md}"
 THREADS="${BENCHMARK_THREADS:-1 2 4 0}"
 RUNS="${BENCHMARK_RUNS:-3}"
 CHUNK_SIZE="${BENCHMARK_CHUNK_SIZE:-1m}"
+CODEC="${BENCHMARK_CODEC:-deflate}"
 HOST_THREADS=$(nproc)
 
 cd "$ROOT_DIR"
@@ -37,7 +38,9 @@ bench_case() {
     local dataset="$1"
     local input="$2"
     local threads="$3"
-    local output="$TMP_DIR/${dataset}.${threads}.gz"
+    local ext="gz"
+    if [[ "$CODEC" == "zstd" ]]; then ext="zst"; fi
+    local output="$TMP_DIR/${dataset}.${threads}.${ext}"
     local times="$TMP_DIR/${dataset}.${threads}.times"
 
     : > "$times"
@@ -46,14 +49,14 @@ bench_case() {
         local start_ns end_ns
         start_ns=$(date +%s%N)
         "$ZIPD" compress "$input" -o "$output" \
-            --threads "$threads" --chunk-size "$CHUNK_SIZE" --quiet >/dev/null
+            --codec "$CODEC" --threads "$threads" --chunk-size "$CHUNK_SIZE" --quiet >/dev/null
         end_ns=$(date +%s%N)
         awk -v start="$start_ns" -v end="$end_ns" \
             'BEGIN {printf "%.6f\n", (end - start) / 1000000000}' >> "$times"
     done
     
     # Run once to collect GC stats (not timed)
-    "$ZIPD" compress "$input" -o "$output" --threads "$threads" --chunk-size "$CHUNK_SIZE" --force --quiet --debug 2>> "$GC_STATS_FILE" >/dev/null
+    "$ZIPD" compress "$input" -o "$output" --codec "$CODEC" --threads "$threads" --chunk-size "$CHUNK_SIZE" --force --quiet --debug 2>> "$GC_STATS_FILE" >/dev/null
 
     local input_bytes output_bytes avg best ratio avg_mibs
     input_bytes=$(wc -c < "$input")
