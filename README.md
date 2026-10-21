@@ -29,7 +29,7 @@ this with a `grep` check.
   - Encoder: LZ77 matcher with 3-repeat offset history, predefined/dynamic FSE,
     Huffman bitstream emission, multi-threaded frame concatenation.
   - High-performance tuning with zero-allocation worker loops, branchless sequence
-    code tables, batch bit flushing, and custom GC integration (`symgc`).
+    code tables, batch bit flushing, and custom GC integration ([`symgc`](https://github.com/leotada/symgc)).
   - Supports `--codec zstd`, `.zst` auto-detection, `--level 1..9`, `--threads N`,
     and full bidirectional interoperability with stock `zstd` / `unzstd`.
 
@@ -80,8 +80,8 @@ Achieving near-native throughput in a 100% `@safe` language requires careful arc
 1. **Worker-Local Scratch Buffer Recycling (`ZstdEncContext`)**:
    - In multi-threaded mode, allocating hash tables, chain buffers, and sequence storage per chunk would generate hundreds of megabytes of garbage, triggering repeated stop-the-world collections.
    - `scheduler.d` maintains a persistent `ZstdEncContext` per worker thread. Buffers are allocated once upon worker startup and reused across all subsequent chunks. Resetting state between chunks is an $O(\text{chunk size})$ clear, reducing GC collections during 128 MB compression from 9 pauses down to near zero.
-2. **Pluggable Concurrent GC Support (`SteadyGC` / `symgc`)**:
-   - `zipd` includes built-in support for the user's custom card-marking collector `symgc` (`SteadyGC`) using `gc:sdcq`. Under heavy concurrent workloads, card-table write barriers eliminate pause spikes and ensure background threads run uninterrupted.
+2. **Pluggable Concurrent GC Support ([`SteadyGC` / `symgc`](https://github.com/leotada/symgc))**:
+   - `zipd` includes built-in support for the custom card-marking collector [`symgc` (`SteadyGC`)](https://github.com/leotada/symgc) using `gc:sdcq`. Under heavy concurrent workloads, card-table write barriers eliminate pause spikes and ensure background threads run uninterrupted.
 3. **Algorithmic Match Finder Optimizations (`zstd_lz.d`)**:
    - **4-Byte Packed Prefix Filter**: A single 32-bit comparison (`pCur == pCandidate`) rejects non-matching hash-chain entries before entering match length evaluation.
    - **16-Byte Unrolled `commonLen`**: Compares 16-byte blocks per step to saturate memory bandwidth while staying strictly within `@safe` slice bounds.
