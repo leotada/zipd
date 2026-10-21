@@ -88,10 +88,31 @@ Result!size_t deflateEncode(const(ubyte)[] input,
             tokens[tokCount++] = Token.match(m.length, m.distance);
             // Insert hashes for skipped positions so future matches see them.
             const end = pos + m.length;
-            foreach (i; pos + 1 .. end)
+            if (m.length <= 32)
             {
-                if (i + minMatch <= input.length)
-                    matcher.insert(i);
+                foreach (i; pos + 1 .. end)
+                {
+                    if (i + minMatch <= input.length)
+                        matcher.insert(i);
+                }
+            }
+            else
+            {
+                const iLimit = pos + 4 < end ? pos + 4 : end;
+                foreach (i; pos + 1 .. iLimit)
+                {
+                    if (i + minMatch <= input.length)
+                        matcher.insert(i);
+                }
+                for (size_t i = pos + 4; i + 2 < end; i += 8)
+                {
+                    if (i + minMatch <= input.length)
+                        matcher.insert(i);
+                }
+                if (end > 2 && end - 2 + minMatch <= input.length)
+                    matcher.insert(end - 2);
+                if (end > 1 && end - 1 + minMatch <= input.length)
+                    matcher.insert(end - 1);
             }
             pos = end;
         }

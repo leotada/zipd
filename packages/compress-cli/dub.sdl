@@ -8,4 +8,10 @@ sourcePaths "source"
 importPaths "source"
 dflags "-preview=dip1000"
 
+buildType "release" {
+    dflags "-preview=dip1000" "-O" "-release" "-inline"
+}
+
 dependency "zipd:compressor" path="../compressor"
+dependency "symgc" path="/home/leonardo/Projetos/dmd/symgc"
+subConfiguration "symgc" "standard"

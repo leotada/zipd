@@ -8,6 +8,13 @@ import zipd.cli.args : parseArgs;
 import zipd.cli.commands : run;
 import zipd.cli.exitcode : exitInvalidArgs, exitCodeFor;
 
+version (Symgc_druntime_hooks)
+{
+    import symgc.gcobj : _d_register_sdc_gc;
+    extern(C) __gshared string[] rt_options = ["gcopt=gc:sdcq"];
+    export extern(C) __gshared const(void)* _symgc_anchor = &_d_register_sdc_gc;
+}
+
 int main(string[] argv) @safe
 {
     auto parsed = parseArgs(argv);

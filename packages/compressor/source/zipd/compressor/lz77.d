@@ -136,11 +136,34 @@ struct Lz77Matcher
                 cand = chain[cand & windowMask];
                 continue;
             }
-            // Count common prefix.
-            uint k = 0;
+
+            // Quick reject: verify the first 3 bytes match (filters hash collisions).
+            if (data[cand] != data[pos]
+                || data[cand + 1] != data[pos + 1]
+                || data[cand + 2] != data[pos + 2])
+            {
+                cand = chain[cand & windowMask];
+                continue;
+            }
+
+            // Count common prefix starting at 3.
+            uint k = 3;
+            while (k + 8 <= maxLen)
+            {
+                if (data[cand + k]     != data[pos + k])     break;
+                if (data[cand + k + 1] != data[pos + k + 1]) { k += 1; break; }
+                if (data[cand + k + 2] != data[pos + k + 2]) { k += 2; break; }
+                if (data[cand + k + 3] != data[pos + k + 3]) { k += 3; break; }
+                if (data[cand + k + 4] != data[pos + k + 4]) { k += 4; break; }
+                if (data[cand + k + 5] != data[pos + k + 5]) { k += 5; break; }
+                if (data[cand + k + 6] != data[pos + k + 6]) { k += 6; break; }
+                if (data[cand + k + 7] != data[pos + k + 7]) { k += 7; break; }
+                k += 8;
+            }
             while (k < maxLen && data[cand + k] == data[pos + k])
                 k++;
-            if (k >= minMatch && k > best.length)
+
+            if (k > best.length)
             {
                 best.length = k;
                 best.distance = posU - cand;
