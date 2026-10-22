@@ -125,7 +125,7 @@ Result!CompressionStats compressMultiMember(ref File inFile,
     scope pool = new Pool(inFlight, settings.container, settings.mode, settings.level);
 
     // Spawn workers.
-    Thread[32] threadsBuf;
+    Thread[128] threadsBuf;
     if (workerCount > threadsBuf.length)
         throw new Exception("Too many threads!");
     scope threads = threadsBuf[0 .. workerCount];
@@ -251,8 +251,15 @@ Result!CompressionStats compressMultiMember(ref File inFile,
             mutexUnlock(pool.mtx);
             break;
         }
-        // 4) Otherwise wait for a worker to finish or for an empty slot
-        //    to free up.
+        // 4) Otherwise check if progress can be made before waiting:
+        //    - Prevent lost-wakeup deadlock: a worker may have completed writeIdx
+        //      between Step 1's unlock and Step 4's lock.
+        //    - An empty slot may have become available.
+        if (findDoneSlot(pool, writeIdx) != size_t.max)
+        {
+            mutexUnlock(pool.mtx);
+            continue;
+        }
         if (!inputEOF && findEmptySlot(pool) != size_t.max)
         {
             // Should not normally happen — we just tried to fill an
@@ -541,4 +548,53 @@ private size_t findEmptySlot(scope Pool pool) @safe nothrow
     remove(inPath);
     remove(gz1);
     remove(gz2);
+}
+
+@safe unittest
+{
+    // Stress test: many small chunks, multi-threading, fast store mode.
+    import std.file : tempDir, write, read, remove;
+    import std.path : buildPath;
+    import zipd.compressor.streaming : decompressFile;
+    import zipd.compressor.settings : CodecId;
+
+    const dir = tempDir();
+    const inPath = buildPath(dir, "zipd-stress.in");
+    const gzPath = buildPath(dir, "zipd-stress.gz");
+    const outPath = buildPath(dir, "zipd-stress.out");
+
+    auto payload = new ubyte[500_000];
+    foreach (i, ref b; payload)
+        b = cast(ubyte)(i & 0xFF);
+    write(inPath, payload);
+
+    // Stress test: various thread counts and codecs
+    foreach (threads; [1, 2, 4, 8, 16])
+    {
+        foreach (iter; 0 .. 20)
+        {
+            File inF = File(inPath, "rb");
+            File outF = File(gzPath, "wb");
+            CompressionSettings s;
+            s.codec = (iter % 2 == 0) ? CodecId.deflate : CodecId.zstd;
+            s.container = (iter % 2 == 0) ? ContainerKind.gzip : ContainerKind.zstd;
+            s.mode = (iter % 4 == 0) ? CompressMode.store : CompressMode.deflate;
+            s.threads = threads;
+            s.chunkSize = (1 << (12 + (iter % 6))); // 4K to 128K
+            auto r = compressMultiMember(inF, outF, s, "");
+            assert(r.ok);
+            try outF.flush(); catch (Exception) {}
+            inF = File.init;
+            outF = File.init;
+
+            auto d = decompressFile(gzPath, outPath);
+            assert(d.ok);
+            auto round = cast(const(ubyte)[]) read(outPath);
+            assert(round == payload);
+            remove(gzPath);
+            remove(outPath);
+        }
+    }
+
+    remove(inPath);
 }
