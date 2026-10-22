@@ -41,23 +41,23 @@ Benchmark script: `tools/compare-benchmark.sh` (128 MB deterministic corpus, AMD
 
 | Dataset | Compressor | Wall Time | Throughput | Compressed Size | Ratio | Verdict |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Mixed Logs** (128 MB) | **`zipd` (zstd, auto-T)** | **0.272s** | **470.6 MB/s** | **4.76 MB** | **3.72%** | 🏆 **20% smaller than system `zstd -3`** |
-| | `zstd` (system, `-3 -T0`) | 0.089s | 1,438.2 MB/s | 5.97 MB | 4.67% | Base system default |
-| | **`zipd` (gzip, auto-T)** | **0.075s** | **1,706.7 MB/s** | **13.50 MB** | **10.55%** | ⚡ **Faster than system `pigz`** |
-| | `pigz` (system, auto-T) | 0.094s | 1,361.7 MB/s | 9.22 MB | 7.20% | System parallel gzip |
-| **Compressible** (128 MB) | **`zipd` (zstd, auto-T)** | **0.138s** | **927.5 MB/s** | **0.02 MB** | **0.02%** | ⚡ **Within 1.7x of native `zstd`** |
-| | `zstd` (system, `-3 -T0`) | 0.080s | 1,600.0 MB/s | 0.01 MB | 0.01% | System C/SIMD |
-| | **`zipd` (gzip, auto-T)** | **0.084s** | **1,523.8 MB/s** | **1.06 MB** | **0.83%** | ⚡ **Faster than system `pigz`** |
-| | `pigz` (system, auto-T) | 0.091s | 1,406.6 MB/s | 0.39 MB | 0.31% | System parallel gzip |
+| **Mixed Logs** (128 MB) | **`zipd` (zstd, auto-T)** | **0.303s** | **422.4 MB/s** | **4.76 MB** | **3.72%** | 🏆 **20% smaller than system `zstd -3`** |
+| | `zstd` (system, `-3 -T0`) | 0.088s | 1,454.5 MB/s | 5.97 MB | 4.67% | Base system default |
+| | **`zipd` (gzip, auto-T)** | **0.110s** | **1,163.6 MB/s** | **13.62 MB** | **10.64%** | ⚡ **Faster than system `pigz`** |
+| | `pigz` (system, auto-T) | 0.113s | 1,132.7 MB/s | 9.22 MB | 7.20% | System parallel gzip |
+| **Compressible** (128 MB) | **`zipd` (zstd, auto-T)** | **0.119s** | **1,075.6 MB/s** | **0.02 MB** | **0.02%** | ⚡ **Within 2.2x of native `zstd`** |
+| | `zstd` (system, `-3 -T0`) | 0.054s | 2,370.4 MB/s | 0.01 MB | 0.01% | System C/SIMD |
+| | **`zipd` (gzip, auto-T)** | **0.071s** | **1,802.8 MB/s** | **1.25 MB** | **0.98%** | ⚡ **Faster than system `pigz`** |
+| | `pigz` (system, auto-T) | 0.093s | 1,376.3 MB/s | 0.39 MB | 0.31% | System parallel gzip |
 
 ### 2. Single-Threaded Compression (`-T 1` vs `-T1`)
 
 | Dataset | Compressor | Wall Time | Throughput | Compressed Size | Ratio | Verdict |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Mixed Logs** (128 MB) | **`zipd` (zstd, 1T, lvl 6)** | **1.472s** | **87.0 MB/s** | **4.38 MB** | **3.42%** | ⚡ **Within 1.8x of system `zstd -6`** |
-| | `zstd` (system, `-6 -T1`) | 0.791s | 161.8 MB/s | 4.20 MB | 3.28% | System level 6 |
-| | `zstd` (system, `-3 -T1`) | 0.187s | 684.5 MB/s | 5.97 MB | 4.67% | System level 3 (larger output) |
-| **Compressible** (128 MB) | **`zipd` (zstd, 1T, lvl 6)** | **0.430s** | **297.7 MB/s** | **0.01 MB** | **0.01%** | ⚡ **50x speedup over baseline** |
+| **Mixed Logs** (128 MB) | **`zipd` (zstd, 1T, lvl 6)** | **1.426s** | **89.8 MB/s** | **4.38 MB** | **3.42%** | ⚡ **Within 1.9x of system `zstd -6`** |
+| | `zstd` (system, `-6 -T1`) | 0.750s | 170.7 MB/s | 4.20 MB | 3.28% | System level 6 |
+| | `zstd` (system, `-3 -T1`) | 0.180s | 711.1 MB/s | 5.97 MB | 4.67% | System level 3 (larger output) |
+| **Compressible** (128 MB) | **`zipd` (zstd, 1T, lvl 6)** | **0.287s** | **446.0 MB/s** | **0.01 MB** | **0.01%** | ⚡ **50x speedup over baseline** |
 | | `zstd` (system, `-6 -T1`) | 0.117s | 1,094.0 MB/s | 0.13 MB | 0.10% | System level 6 |
 
 ---
